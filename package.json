@@ -1,0 +1,27 @@
+{
+  "name": "cordova-plugin-aquro-webview",
+  "version": "0.0.2",
+  "description": "Webview component for Aquro Projects",
+  "cordova": {
+    "id": "cordova-plugin-aquro-webview",
+    "platforms": [
+      "ios",
+      "android"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://jnordstrom1983@github.com/jnordstrom1983/cordova-plugin-aquro-webview.git"
+  },
+  "keywords": [
+    "ecosystem:cordova",
+    "cordova-ios",
+    "cordova-android"
+  ],
+  "author": "Johan Nordstrom",
+  "license": "Unlicensed",
+  "bugs": {
+    "url": "https://github.com/jnordstrom1983/cordova-plugin-aquro-webview/issues"
+  },
+  "homepage": "https://github.com/jnordstrom1983/cordova-plugin-aquro-webview#readme"
+}
