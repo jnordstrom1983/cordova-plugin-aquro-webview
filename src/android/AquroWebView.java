@@ -433,8 +433,6 @@ public class AquroWebView extends CordovaPlugin {
                                 cordova.requestPermission(AquroWebView.this, 0, WRITE_EXTERNAL_STORAGE);
                             }
 
-                            PerformRequest();
-
 
                         }
                     });
