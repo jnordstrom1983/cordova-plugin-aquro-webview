@@ -1,14 +1,20 @@
 package cordova.plugin.aquro.webiew;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.DownloadManager;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.ViewGroup;
+import android.webkit.CookieManager;
+import android.webkit.DownloadListener;
+import android.webkit.URLUtil;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
@@ -28,7 +34,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static android.app.Activity.RESULT_OK;
+import static android.content.Context.DOWNLOAD_SERVICE;
 
 
 /**
@@ -37,7 +45,7 @@ import static android.app.Activity.RESULT_OK;
 public class AquroWebView extends CordovaPlugin {
 
 
-
+    private DownloadManager.Request request;
     private ValueCallback<Uri[]> uploadMessage;
     private final static int FILECHOOSER_RESULTCODE = 1;
 
@@ -393,6 +401,46 @@ public class AquroWebView extends CordovaPlugin {
                     w.getSettings().setAllowFileAccess(true);
                     w.setVerticalScrollBarEnabled(true);
 
+
+                    w.setDownloadListener(new DownloadListener() {
+                        public void onDownloadStart(String url, String userAgent,
+                                                    String contentDisposition, String mimetype,
+                                                    long contentLength) {
+
+                            String cookie = CookieManager.getInstance().getCookie(url);
+
+                            request = new DownloadManager.Request(
+                                    Uri.parse(url));
+                            String fileName = contentDisposition.replaceFirst("(?i)^.*filename=\"([^\"]+)\".*$", "$1");
+
+                            if(fileName == null) {
+                                fileName = URLUtil.guessFileName(url, null, null);
+                            }
+
+
+                            request.addRequestHeader("Cookie", cookie);
+                            request.allowScanningByMediaScanner();
+                            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
+
+
+                            if(cordova.hasPermission(WRITE_EXTERNAL_STORAGE))
+                            {
+                               PerformRequest();
+                            }
+                            else
+                            {
+                                cordova.requestPermission(AquroWebView.this, 0, WRITE_EXTERNAL_STORAGE);
+                            }
+
+                            PerformRequest();
+
+
+                        }
+                    });
+
+
+
                     w.loadUrl(url);
                     a.addView(w);
                     f.addView(a);
@@ -418,12 +466,35 @@ public class AquroWebView extends CordovaPlugin {
         File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
         return File.createTempFile(imageFileName,".jpg",storageDir);
     }
+    private void PerformRequest(){
+        DownloadManager dm = (DownloadManager) cordova.getActivity().getSystemService(DOWNLOAD_SERVICE);
+        dm.enqueue(request);
 
+    }
     private void coolMethod(String message, CallbackContext callbackContext) {
         if (message != null && message.length() > 0) {
             callbackContext.success(message);
         } else {
             callbackContext.error("Expected one non-empty string argument.");
+        }
+    }
+
+
+    public void onRequestPermissionResult(int requestCode, String[] permissions,
+                                          int[] grantResults) throws JSONException
+    {
+        for(int r:grantResults)
+        {
+            if(r == PackageManager.PERMISSION_DENIED)
+            {
+                return;
+            }
+        }
+        switch(requestCode)
+        {
+            case 0:
+                PerformRequest();
+                break;
         }
     }
 }

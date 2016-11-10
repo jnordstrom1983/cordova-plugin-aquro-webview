@@ -20,7 +20,9 @@
 				<param name="android-package" value="cordova.plugin.aquro.webiew.AquroWebView" />
 			</feature>
 		</config-file>
-		<config-file parent="/*" target="AndroidManifest.xml"></config-file>
+		<config-file parent="/*" target="AndroidManifest.xml">
+			<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+		</config-file>
 		<source-file src="src/android/AquroWebView.java" target-dir="src/aquro/webiew/AquroWebView" />
 	</platform>
 </plugin>
