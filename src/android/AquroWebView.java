@@ -104,8 +104,23 @@ public class AquroWebView extends CordovaPlugin {
                 webView.loadUrl("javascript:AquroWebViewEvent('" + Name + "')");
                 return true;
             }
-            view.loadUrl(url);
-            return true;
+
+            if(url.startsWith("http://") || url.startsWith("https://")){
+                view.loadUrl(url);
+                return true;
+            }else{
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                view.getContext().startActivity(intent);
+                return true;
+
+
+            }
+
+
+
+
+
         }
 
 
