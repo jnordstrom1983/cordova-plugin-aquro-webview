@@ -344,7 +344,7 @@ public class AquroWebView extends CordovaPlugin {
                             mUM = uploadMsg;
                             Intent i = new Intent(Intent.ACTION_GET_CONTENT);
                             i.addCategory(Intent.CATEGORY_OPENABLE);
-                            i.setType("image/*");
+                            i.setType("*/*");
                             cordova.startActivityForResult(AquroWebView.this,Intent.createChooser(i,"File Chooser"), FCR);
                         }
                         // For Android 3.0+, above method not supported in some android 3+ versions, in such case we use this
@@ -362,7 +362,7 @@ public class AquroWebView extends CordovaPlugin {
                             mUM = uploadMsg;
                             Intent i = new Intent(Intent.ACTION_GET_CONTENT);
                             i.addCategory(Intent.CATEGORY_OPENABLE);
-                            i.setType("image/*");
+                            i.setType("*/*");
                             cordova.startActivityForResult(AquroWebView.this,Intent.createChooser(i, "File Chooser"), AquroWebView.FCR);
                         }
                         //For Android 5.0+
@@ -391,7 +391,7 @@ public class AquroWebView extends CordovaPlugin {
                             }
                             Intent contentSelectionIntent = new Intent(Intent.ACTION_GET_CONTENT);
                             contentSelectionIntent.addCategory(Intent.CATEGORY_OPENABLE);
-                            contentSelectionIntent.setType("image/*");
+                            contentSelectionIntent.setType("*/*");
                             Intent[] intentArray;
                             if(takePictureIntent != null){
                                 intentArray = new Intent[]{takePictureIntent};
