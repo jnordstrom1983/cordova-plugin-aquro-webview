@@ -4,11 +4,14 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.DownloadManager;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.ViewGroup;
@@ -24,14 +27,17 @@ import android.widget.RelativeLayout;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CallbackContext;
 
+import org.apache.cordova.LOG;
 import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
@@ -362,7 +368,7 @@ public class AquroWebView extends CordovaPlugin {
                             mUM = uploadMsg;
                             Intent i = new Intent(Intent.ACTION_GET_CONTENT);
                             i.addCategory(Intent.CATEGORY_OPENABLE);
-                            i.setType("*/*");
+                            i.setType("image/*");
                             cordova.startActivityForResult(AquroWebView.this,Intent.createChooser(i, "File Chooser"), AquroWebView.FCR);
                         }
                         //For Android 5.0+
@@ -373,38 +379,20 @@ public class AquroWebView extends CordovaPlugin {
                                 mUMA.onReceiveValue(null);
                             }
                             mUMA = filePathCallback;
-                            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                            if(takePictureIntent.resolveActivity( cordova.getActivity().getApplication().getPackageManager()) != null){
-                                File photoFile = null;
-                                try{
-                                    photoFile = createImageFile();
-                                    takePictureIntent.putExtra("PhotoPath", mCM);
-                                }catch(IOException ex){
-                                    Log.e(TAG, "Image file creation failed", ex);
-                                }
-                                if(photoFile != null){
-                                    mCM = "file:" + photoFile.getAbsolutePath();
-                                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
-                                }else{
-                                    takePictureIntent = null;
-                                }
+
+
+                            if(cordova.hasPermission(WRITE_EXTERNAL_STORAGE))
+                            {
+                                return ChooseFile();
                             }
-                            Intent contentSelectionIntent = new Intent(Intent.ACTION_GET_CONTENT);
-                            contentSelectionIntent.addCategory(Intent.CATEGORY_OPENABLE);
-                            contentSelectionIntent.setType("*/*");
-                            Intent[] intentArray;
-                            if(takePictureIntent != null){
-                                intentArray = new Intent[]{takePictureIntent};
-                            }else{
-                                intentArray = new Intent[0];
+                            else
+                            {
+                                cordova.requestPermission(AquroWebView.this, 1, WRITE_EXTERNAL_STORAGE);
+                                //filePathCallback.onReceiveValue(null);
+                                return true;
                             }
 
-                            Intent chooserIntent = new Intent(Intent.ACTION_CHOOSER);
-                            chooserIntent.putExtra(Intent.EXTRA_INTENT, contentSelectionIntent);
-                            chooserIntent.putExtra(Intent.EXTRA_TITLE, "Image Chooser");
-                            chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentArray);
-                            cordova.startActivityForResult(AquroWebView.this,chooserIntent, FCR);
-                            return true;
+
                         }
 
                     });
@@ -473,6 +461,77 @@ public class AquroWebView extends CordovaPlugin {
         return false;
     }
 
+
+    private boolean ChooseFile(){
+
+
+
+        boolean foundCamera = false;
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if(takePictureIntent.resolveActivity( cordova.getActivity().getApplication().getPackageManager()) != null){
+            File photoFile = null;
+            try{
+                photoFile = createImageFile();
+                takePictureIntent.putExtra("PhotoPath", mCM);
+            }catch(IOException ex){
+                Log.e(TAG, "Image file creation failed", ex);
+            }
+            if(photoFile != null){
+                mCM = "file:" + photoFile.getAbsolutePath();
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
+
+            }else{
+                takePictureIntent = null;
+            }
+        }else{
+
+
+        }
+        Intent contentSelectionIntent = new Intent(Intent.ACTION_GET_CONTENT);
+        contentSelectionIntent.addCategory(Intent.CATEGORY_OPENABLE);
+        contentSelectionIntent.setType("*/*");
+        Intent[] intentArray;
+        if(takePictureIntent != null){
+            intentArray = new Intent[]{takePictureIntent};
+        }else{
+            intentArray = new Intent[0];
+        }
+
+//        if(takePictureIntent == null){
+//            File photoFile = null;
+//            try {
+//                photoFile = createImageFile();
+//            }catch(IOException ex) {
+//                LOG.e(TAG, "Could'nt create file");
+//
+//            }
+//            if(photoFile!=null) {
+//                // Camera.
+//                final List<Intent> cameraIntents = new ArrayList<Intent>();
+//                final Intent captureIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+//                final PackageManager packageManager = cordova.getActivity().getApplication().getPackageManager();
+//                final List<ResolveInfo> listCam = packageManager.queryIntentActivities(captureIntent, 0);
+//                for (ResolveInfo res : listCam) {
+//                    final String packageName = res.activityInfo.packageName;
+//                    final Intent intent = new Intent(captureIntent);
+//                    intent.setComponent(new ComponentName(packageName, res.activityInfo.name));
+//                    intent.setPackage(packageName);
+//                    intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
+//                    cameraIntents.add(intent);
+//                }
+//                intentArray = cameraIntents.toArray(new Intent[cameraIntents.size()]);
+//            }
+        //       }
+
+
+        Intent chooserIntent = new Intent(Intent.ACTION_CHOOSER);
+        chooserIntent.putExtra(Intent.EXTRA_INTENT, contentSelectionIntent);
+        chooserIntent.putExtra(Intent.EXTRA_TITLE, "Image Chooser");
+        chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentArray);
+        cordova.startActivityForResult(AquroWebView.this,chooserIntent, FCR);
+        return true;
+
+    }
     private File createImageFile() throws IOException{
         @SuppressLint("SimpleDateFormat") String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "img_"+timeStamp+"_";
@@ -507,6 +566,9 @@ public class AquroWebView extends CordovaPlugin {
         {
             case 0:
                 PerformRequest();
+                break;
+            case 1:
+                ChooseFile();
                 break;
         }
     }
