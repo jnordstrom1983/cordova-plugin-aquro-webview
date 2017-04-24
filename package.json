@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-aquro-webview",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Webview component for Aquro Projects",
   "cordova": {
     "id": "cordova-plugin-aquro-webview",
