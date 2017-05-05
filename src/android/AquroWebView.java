@@ -80,8 +80,16 @@ public class AquroWebView extends CordovaPlugin {
                         }
                     }else{
                         String dataString = intent.getDataString();
+
+
                         if(dataString != null){
                             results = new Uri[]{Uri.parse(dataString)};
+                        }else {
+                            if(mCM != null){
+                                results = new Uri[]{Uri.parse(mCM)};
+                            }
+
+
                         }
                     }
                 }
@@ -358,7 +366,7 @@ public class AquroWebView extends CordovaPlugin {
                             mUM = uploadMsg;
                             Intent i = new Intent(Intent.ACTION_GET_CONTENT);
                             i.addCategory(Intent.CATEGORY_OPENABLE);
-                            i.setType("*/*");
+                            i.setType("image/*");
                             cordova.startActivityForResult(AquroWebView.this,
                                     Intent.createChooser(i, "File Browser"),
                                     FCR);
